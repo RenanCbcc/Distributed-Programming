@@ -1,5 +1,9 @@
 package client;
 
+import java.io.IOException;
+import java.net.UnknownHostException;
+import java.util.Scanner;
+
 import javax.jms.Connection;
 import javax.jms.Destination;
 import javax.jms.JMSException;
@@ -10,45 +14,101 @@ import javax.jms.TextMessage;
 
 import org.apache.activemq.ActiveMQConnectionFactory;
 
-public class Consumer implements Runnable{
+public class Consumer implements Runnable {
 
-	ActiveMQConnectionFactory connectionFactory = null;
+	// Connection Factory which will help in connecting to ActiveMQ server
+	private ActiveMQConnectionFactory connectionFactory;
+	private Connection connection;
+	private Session session;
+	private Scanner scanner;
+	private String name;
+	private String message;
 
 	public Consumer(ActiveMQConnectionFactory connectionFactory) {
 		this.connectionFactory = connectionFactory;
 	}
 
+	public Consumer(String name) throws JMSException {
+		this.name = name;
+		connectionFactory = new ActiveMQConnectionFactory("tcp://localhost:61616");
+		connection = connectionFactory.createConnection();
+		scanner = new Scanner(System.in);
+	}
+
 	public void run() {
 		try {
-			// First create a connection
-			Connection connection = connectionFactory.createConnection();
 			connection.start();
 
-			// Now create a Session
-			Session session = connection.createSession(false,
-					Session.AUTO_ACKNOWLEDGE);
+			int op = 1;
+			while (op != 0) {
+				exhibitMenu();
+				op = scanner.nextInt();
+				switch (op) {
+				case 1:
+					System.out.println("Name of the topic: ");
+					joinTopic(scanner.nextLine());
+					break;
+				case 2:
+					System.out.println("Name of the topic: ");
+					leaveTopic(scanner.nextLine());
+					break;
+				case 3:
+					System.out.println("Process a request");
+					processRequest();
+					break;
+				case 4:
+					System.out.println("Closing the connection");
+					shutDown();
+					break;
 
-			// Let's create a topic. If the topic exist,
-			// it will return that
-			Destination topicDestination = session.createTopic("CLIMATE");
+				}
 
-			// Create a MessageProducer from the Session
-			// to the Topic or Queue
-			MessageConsumer messageConsumer = session
-					.createConsumer(topicDestination);
+			}
 
-			// Get the message
-			Message message = messageConsumer.receive();
-
-			TextMessage textMessage = (TextMessage) message;
-
-			System.out.println(textMessage.getText());
-
-			// Do the cleanup
-			session.close();
-			connection.close();
+			/// connection.close();
 		} catch (JMSException jmse) {
 			System.out.println("Exception: " + jmse.getMessage());
+		} catch (UnknownHostException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
+	}
+
+	public void exhibitMenu() {
+		System.out.println("1 - Join in a new topic");
+		System.out.println("2 - Leave a topic");
+		System.out.println("3 - Process a request");
+		System.out.println("4 - Shut down the client");
+	}
+
+	private void processRequest() throws UnknownHostException, IOException {
+		if (message.length() == 0) {
+			System.out.println("No requests yet");
+		} else {
+			new Thread(new ConsumerSocket(this.name, this.message)).start();
+		}
+	}
+
+	private void joinTopic(String topic) throws JMSException {
+		session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
+		Destination topicDestination = session.createTopic(topic);
+		MessageConsumer messageConsumer = session.createConsumer(topicDestination);
+		Message message = messageConsumer.receiveNoWait();
+		TextMessage textMessage = (TextMessage) message;
+		System.out.println("Message from Boinc: " + textMessage.getText());
+		this.message = textMessage.toString();
+		session.close();
+
+	}
+
+	private void leaveTopic(String topic) {
+	}
+
+	private void shutDown() throws JMSException {
+		connection.close();
+
 	}
 }
