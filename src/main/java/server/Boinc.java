@@ -2,7 +2,6 @@ package server;
 
 import java.net.MalformedURLException;
 import java.rmi.RemoteException;
-import java.util.Scanner;
 
 import javax.jms.Connection;
 import javax.jms.DeliveryMode;
@@ -11,6 +10,8 @@ import javax.jms.JMSException;
 import javax.jms.MessageProducer;
 import javax.jms.Session;
 import javax.jms.TextMessage;
+import javax.swing.JFrame;
+import javax.swing.JOptionPane;
 
 import org.apache.activemq.ActiveMQConnectionFactory;
 
@@ -20,46 +21,44 @@ public class Boinc implements Runnable {
 	private ActiveMQConnectionFactory connectionFactory;
 	private Connection connection;
 	private Session session;
-	private Scanner scanner;
 	private Thread server;
+	private static JFrame frame = new JFrame();
 
 	public Boinc() throws JMSException {
 		connectionFactory = new ActiveMQConnectionFactory("tcp://localhost:61616");
 		connection = connectionFactory.createConnection();
-		scanner = new Scanner(System.in);
 		System.out.println("Boinc Systens is onLine!");
 		Listening();
 	}
 
 	public void run() {
-		try {
 
+		try {
 			connection.start();
-			int op = 1;
-			while (op != 0) {
-				exhibitMenu();
-				op = scanner.nextInt();
-				switch (op) {
-				case 1:
+
+			String[] options = { "Create a new topi", "Show all the topics", "Delete a topic", "Shut down the server" };
+			while (true) {
+				String choice = (String) JOptionPane.showInputDialog(frame, "Choose a method", "Options",
+						JOptionPane.QUESTION_MESSAGE, null, options, options[0]);
+
+				switch (choice) {
+				case "Join in a new topic":
 					createTopic();
 					break;
-				case 2:
-					System.out.println("Anything here yet");
+				case "Show all the topics":
+					JOptionPane.showMessageDialog(null, "Anything here yet", "Info", 1);
 					break;
-				case 3:
-					System.out.println("Anything here yet");
+				case "Delete a topic":
+					JOptionPane.showMessageDialog(null, "Anything here yet", "Info", 1);
 					break;
-				case 4:
-					System.out.println("Anything here yet");
+				case "Shut down the server":
+					shutDown();
+					System.exit(0);
 					break;
-
 				}
-
 			}
-			// connection.close();
 
 		} catch (JMSException jmse) {
-			scanner.close();
 			System.out.println("Exception: " + jmse.getMessage());
 		}
 	}
@@ -67,10 +66,13 @@ public class Boinc implements Runnable {
 	private void Listening() {
 		server = new Thread(new Listener());
 		server.start();
-		System.out.println("Boinc is listening for clients.");
+
 	}
 
 	private void send(String topic, String body) {
+		System.out.println("sent message: \n" + topic + " - " + body);
+		JOptionPane.showMessageDialog(null, "Anything here yet", "Info", 1);
+
 		try {
 			session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
 			Destination destination = session.createTopic(topic);
@@ -80,23 +82,16 @@ public class Boinc implements Runnable {
 			producer.send(message);
 			session.close();
 		} catch (JMSException jmse) {
-			System.out.println("Exception: " + jmse.getMessage());
-		}
+			JOptionPane.showMessageDialog(null, jmse.getMessage(), "Error", 0);
 
-		System.out.println("Operation have been finenhid with success");
+		}
+		JOptionPane.showMessageDialog(null, "Operation has been finenhid with success", "Info", 1);
 	}
 
 	public void showTopics() {
 	}
 
 	public void deleteTopics() {
-	}
-
-	public void exhibitMenu() {
-		System.out.println("1 - Create a new topic");
-		System.out.println("2 - Show all the topics");
-		System.out.println("3 - Delete a topic");
-		System.out.println("4 - Shut down the server");
 	}
 
 	public void shutDown() throws JMSException {
@@ -106,14 +101,12 @@ public class Boinc implements Runnable {
 	}
 
 	public void createTopic() {
-		String topic = "";
-		String body = "";
-		System.out.print("Name of the new topic: ");
-		topic = scanner.next();
-		System.out.println("Body of the topic: ");
-		body = scanner.next();
+
+		String topic, body;
+		topic = JOptionPane.showInputDialog(null, "Name of the topic");
+		body = JOptionPane.showInputDialog(null, "Body of the topic");
 		send(topic, body);
-	
+
 	}
 
 	public static void main(String[] args) throws RemoteException, MalformedURLException, JMSException {

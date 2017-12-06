@@ -12,7 +12,7 @@ public class Listener implements Runnable {
 	ServerSocket serverSocket;
 
 	public void run() {
-
+		System.out.println("Boinc is listening for clients!");
 		try {
 
 			serverSocket = new ServerSocket(PORT);

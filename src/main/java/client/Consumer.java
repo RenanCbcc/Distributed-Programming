@@ -2,7 +2,6 @@ package client;
 
 import java.io.IOException;
 import java.net.UnknownHostException;
-import java.util.Scanner;
 
 import javax.jms.Connection;
 import javax.jms.Destination;
@@ -11,6 +10,8 @@ import javax.jms.Message;
 import javax.jms.MessageConsumer;
 import javax.jms.Session;
 import javax.jms.TextMessage;
+import javax.swing.JFrame;
+import javax.swing.JOptionPane;
 
 import org.apache.activemq.ActiveMQConnectionFactory;
 
@@ -20,9 +21,9 @@ public class Consumer implements Runnable {
 	private ActiveMQConnectionFactory connectionFactory;
 	private Connection connection;
 	private Session session;
-	private Scanner scanner;
 	private String name;
 	private String message;
+	private static JFrame frame = new JFrame();
 
 	public Consumer(ActiveMQConnectionFactory connectionFactory) {
 		this.connectionFactory = connectionFactory;
@@ -32,61 +33,56 @@ public class Consumer implements Runnable {
 		this.name = name;
 		connectionFactory = new ActiveMQConnectionFactory("tcp://localhost:61616");
 		connection = connectionFactory.createConnection();
-		scanner = new Scanner(System.in);
+
 	}
 
 	public void run() {
 		try {
 			connection.start();
 
-			int op = 1;
-			while (op != 0) {
-				exhibitMenu();
-				op = scanner.nextInt();
-				switch (op) {
-				case 1:
-					System.out.println("Name of the topic: ");
-					joinTopic(scanner.nextLine());
+			String[] options = { "Join in a new topic", "Leave a topic", "Process a request", "Shut down the client" };
+			String str;
+			while (true) {
+				String choice = (String) JOptionPane.showInputDialog(frame, "Choose a method", "Options",
+						JOptionPane.QUESTION_MESSAGE, null, options, options[0]);
+
+				switch (choice) {
+				case "Join in a new topic":
+					str = "Name of the topic: ";
+					str = JOptionPane.showInputDialog(null, str);
+					joinTopic(str);
 					break;
-				case 2:
-					System.out.println("Name of the topic: ");
-					leaveTopic(scanner.nextLine());
+				case "Leave a topic":
+					str = "Name of the topic: ";
+					str = JOptionPane.showInputDialog(null, str);
+					leaveTopic(str);
+
 					break;
-				case 3:
-					System.out.println("Process a request");
+				case "Process a request":
 					processRequest();
 					break;
-				case 4:
-					System.out.println("Closing the connection");
+				case "Shut down the client":
 					shutDown();
+					System.exit(0);
 					break;
-
 				}
-
 			}
 
 			/// connection.close();
 		} catch (JMSException jmse) {
-			System.out.println("Exception: " + jmse.getMessage());
+			JOptionPane.showMessageDialog(null, jmse.getMessage(), "Error", 0);
 		} catch (UnknownHostException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			JOptionPane.showMessageDialog(null, e.getMessage(), "Error", 0);
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-	}
+			JOptionPane.showMessageDialog(null, e.getMessage(), "Error", 0);
 
-	public void exhibitMenu() {
-		System.out.println("1 - Join in a new topic");
-		System.out.println("2 - Leave a topic");
-		System.out.println("3 - Process a request");
-		System.out.println("4 - Shut down the client");
+		}
 	}
 
 	private void processRequest() throws UnknownHostException, IOException {
 		if (message.length() == 0) {
-			System.out.println("No requests yet");
+
+			JOptionPane.showMessageDialog(null, "No requests yet", "Info", 1);
 		} else {
 			new Thread(new ConsumerSocket(this.name, this.message)).start();
 		}
@@ -98,7 +94,7 @@ public class Consumer implements Runnable {
 		MessageConsumer messageConsumer = session.createConsumer(topicDestination);
 		Message message = messageConsumer.receiveNoWait();
 		TextMessage textMessage = (TextMessage) message;
-		System.out.println("Message from Boinc: " + textMessage.getText());
+		JOptionPane.showMessageDialog(null, textMessage.getText(), "Message from Boinc: ", 1);
 		this.message = textMessage.toString();
 		session.close();
 

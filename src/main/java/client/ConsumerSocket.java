@@ -10,6 +10,8 @@ import java.net.Socket;
 import java.net.UnknownHostException;
 import java.nio.charset.StandardCharsets;
 
+import javax.swing.JOptionPane;
+
 public class ConsumerSocket implements Runnable {
 
 	private String body;
@@ -33,7 +35,8 @@ public class ConsumerSocket implements Runnable {
 			toServer.writeBytes(fromUser.readLine().toUpperCase());
 			socket.close();
 		} catch (IOException e) {
-			System.err.println(e);
+			JOptionPane.showMessageDialog(null, e.getMessage(), "Error", 0);
+
 		}
 
 	}
