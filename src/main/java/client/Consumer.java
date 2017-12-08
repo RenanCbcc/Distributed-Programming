@@ -15,6 +15,8 @@ import javax.swing.JOptionPane;
 
 import org.apache.activemq.ActiveMQConnectionFactory;
 
+import huffman.Huffman;
+
 public class Consumer implements Runnable {
 
 	// Connection Factory which will help in connecting to ActiveMQ server
@@ -22,12 +24,13 @@ public class Consumer implements Runnable {
 	private Connection connection;
 	private Session session;
 	private String name;
-	private String message = "Science is a way of thinking much more than it is a body of knowledge";
+	private String message;
+	private Huffman huffman;
 	private static JFrame frame = new JFrame();
-
 
 	public Consumer(String name) throws JMSException {
 		this.name = name;
+		huffman = new Huffman();
 		connectionFactory = new ActiveMQConnectionFactory("tcp://localhost:61616");
 		connection = connectionFactory.createConnection();
 
@@ -38,13 +41,13 @@ public class Consumer implements Runnable {
 			connection.start();
 
 			String[] options = { "Join in a new topic", "Leave a topic", "Process a request", "Shut down the client" };
-			
+
 			while (true) {
 				String choice = (String) JOptionPane.showInputDialog(frame, "Choose a method", name,
 						JOptionPane.QUESTION_MESSAGE, null, options, options[0]);
 
 				switch (choice) {
-				case "Join in a new topic":					
+				case "Join in a new topic":
 					joinTopic(JOptionPane.showInputDialog(null, "Name of the topic"));
 					break;
 				case "Leave a topic":
@@ -64,10 +67,10 @@ public class Consumer implements Runnable {
 		} catch (JMSException jmse) {
 			JOptionPane.showMessageDialog(null, jmse.getMessage(), "Error", 0);
 		} catch (UnknownHostException e) {
-			JOptionPane.showMessageDialog(null, e.getMessage()+" UnknownHostException", "Errorr", 0);
+			JOptionPane.showMessageDialog(null, e.getMessage() + " UnknownHostException", "Errorr", 0);
 		} catch (IOException e) {
 			JOptionPane.showMessageDialog(null, e.getMessage(), "Error", 0);
-		
+
 		}
 	}
 
@@ -76,7 +79,14 @@ public class Consumer implements Runnable {
 
 			JOptionPane.showMessageDialog(null, "No requests yet", "Info", 1);
 		} else {
-			new Thread(new ConsumerSocket(this.name, this.message)).start();
+			String data = huffman.codifica(this.message);
+			int normalSize = this.message.length() * 8;
+			int compressedSize = data.length();
+			double rate = 100.0 - (compressedSize * 100.0 / normalSize);
+			System.out.println("Normal size: " + normalSize);
+			System.out.println("Compressed size: " + compressedSize);
+			System.out.printf("Compressed is %.2f%% smaller than the original. %n", rate);
+			new Thread(new ConsumerSocket(this.name, data)).start();
 		}
 	}
 
@@ -101,9 +111,9 @@ public class Consumer implements Runnable {
 		connection.close();
 
 	}
-	
+
 	public static void main(String[] args) throws JMSException {
 		new Thread(new Consumer("One")).start();
-		
+
 	}
 }
