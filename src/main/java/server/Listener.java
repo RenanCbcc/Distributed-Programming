@@ -8,7 +8,7 @@ import java.net.Socket;
 
 public class Listener implements Runnable {
 
-	public final static int PORT = 1984;
+	public final static int PORT = 1987;
 	ServerSocket serverSocket;
 
 	public void run() {

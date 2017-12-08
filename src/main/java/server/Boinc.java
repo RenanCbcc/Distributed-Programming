@@ -18,6 +18,7 @@ import org.apache.activemq.ActiveMQConnectionFactory;
 public class Boinc implements Runnable {
 
 	// Connection Factory which will help in connecting to ActiveMQ server
+	//Science is a way of thinking much more than it is a body of knowledge
 	private ActiveMQConnectionFactory connectionFactory;
 	private Connection connection;
 	private Session session;
@@ -36,13 +37,13 @@ public class Boinc implements Runnable {
 		try {
 			connection.start();
 
-			String[] options = { "Create a new topi", "Show all the topics", "Delete a topic", "Shut down the server" };
+			String[] options = { "Create a new topic", "Show all the topics", "Delete a topic", "Shut down the server" };
 			while (true) {
-				String choice = (String) JOptionPane.showInputDialog(frame, "Choose a method", "Options",
+				String choice = (String) JOptionPane.showInputDialog(frame, "Select a method", "Boinc Options",
 						JOptionPane.QUESTION_MESSAGE, null, options, options[0]);
 
 				switch (choice) {
-				case "Join in a new topic":
+				case "Create a new topic":
 					createTopic();
 					break;
 				case "Show all the topics":
@@ -59,7 +60,7 @@ public class Boinc implements Runnable {
 			}
 
 		} catch (JMSException jmse) {
-			System.out.println("Exception: " + jmse.getMessage());
+			JOptionPane.showMessageDialog(null, jmse.getMessage(), "Error", 0);
 		}
 	}
 
@@ -70,9 +71,7 @@ public class Boinc implements Runnable {
 	}
 
 	private void send(String topic, String body) {
-		System.out.println("sent message: \n" + topic + " - " + body);
-		JOptionPane.showMessageDialog(null, "Anything here yet", "Info", 1);
-
+		
 		try {
 			session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
 			Destination destination = session.createTopic(topic);

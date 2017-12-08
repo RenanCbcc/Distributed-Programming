@@ -22,12 +22,9 @@ public class Consumer implements Runnable {
 	private Connection connection;
 	private Session session;
 	private String name;
-	private String message;
+	private String message = "Science is a way of thinking much more than it is a body of knowledge";
 	private static JFrame frame = new JFrame();
 
-	public Consumer(ActiveMQConnectionFactory connectionFactory) {
-		this.connectionFactory = connectionFactory;
-	}
 
 	public Consumer(String name) throws JMSException {
 		this.name = name;
@@ -41,22 +38,17 @@ public class Consumer implements Runnable {
 			connection.start();
 
 			String[] options = { "Join in a new topic", "Leave a topic", "Process a request", "Shut down the client" };
-			String str;
+			
 			while (true) {
-				String choice = (String) JOptionPane.showInputDialog(frame, "Choose a method", "Options",
+				String choice = (String) JOptionPane.showInputDialog(frame, "Choose a method", name,
 						JOptionPane.QUESTION_MESSAGE, null, options, options[0]);
 
 				switch (choice) {
-				case "Join in a new topic":
-					str = "Name of the topic: ";
-					str = JOptionPane.showInputDialog(null, str);
-					joinTopic(str);
+				case "Join in a new topic":					
+					joinTopic(JOptionPane.showInputDialog(null, "Name of the topic"));
 					break;
 				case "Leave a topic":
-					str = "Name of the topic: ";
-					str = JOptionPane.showInputDialog(null, str);
-					leaveTopic(str);
-
+					leaveTopic(JOptionPane.showInputDialog(null, "Name of the topic: "));
 					break;
 				case "Process a request":
 					processRequest();
@@ -72,10 +64,10 @@ public class Consumer implements Runnable {
 		} catch (JMSException jmse) {
 			JOptionPane.showMessageDialog(null, jmse.getMessage(), "Error", 0);
 		} catch (UnknownHostException e) {
-			JOptionPane.showMessageDialog(null, e.getMessage(), "Error", 0);
+			JOptionPane.showMessageDialog(null, e.getMessage()+" UnknownHostException", "Errorr", 0);
 		} catch (IOException e) {
 			JOptionPane.showMessageDialog(null, e.getMessage(), "Error", 0);
-
+		
 		}
 	}
 
@@ -89,10 +81,12 @@ public class Consumer implements Runnable {
 	}
 
 	private void joinTopic(String topic) throws JMSException {
+		connection.start();
 		session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
 		Destination topicDestination = session.createTopic(topic);
 		MessageConsumer messageConsumer = session.createConsumer(topicDestination);
-		Message message = messageConsumer.receiveNoWait();
+		System.out.println("Just wating...");
+		Message message = messageConsumer.receive();
 		TextMessage textMessage = (TextMessage) message;
 		JOptionPane.showMessageDialog(null, textMessage.getText(), "Message from Boinc: ", 1);
 		this.message = textMessage.toString();
@@ -106,5 +100,10 @@ public class Consumer implements Runnable {
 	private void shutDown() throws JMSException {
 		connection.close();
 
+	}
+	
+	public static void main(String[] args) throws JMSException {
+		new Thread(new Consumer("One")).start();
+		
 	}
 }
