@@ -85,7 +85,12 @@ public class Consumer implements Runnable {
 			double rate = 100.0 - (compressedSize * 100.0 / normalSize);
 			System.out.println("Normal size: " + normalSize);
 			System.out.println("Compressed size: " + compressedSize);
-			System.out.printf("Compressed is %.2f%% smaller than the original. %n", rate);
+			System.out.printf("Compressed is %.2f%% smaller the original. %n", rate);
+			String str = "Normal size: " + normalSize+"\n"
+					+ "Compressed size: " + compressedSize +"\n"
+					+ "Compressed is "+rate+ "smaller the original";
+			JOptionPane.showMessageDialog(null, str, "Message from Boinc: ", 1);
+			
 			new Thread(new ConsumerSocket(this.name, data)).start();
 		}
 	}

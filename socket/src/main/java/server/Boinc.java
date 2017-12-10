@@ -18,7 +18,7 @@ import org.apache.activemq.ActiveMQConnectionFactory;
 public class Boinc implements Runnable {
 
 	// Connection Factory which will help in connecting to ActiveMQ server
-	//Science is a way of thinking much more than it is a body of knowledge
+	//Science is a way of thinking much more than it is a body of knowledge.
 	private ActiveMQConnectionFactory connectionFactory;
 	private Connection connection;
 	private Session session;
@@ -84,7 +84,7 @@ public class Boinc implements Runnable {
 			JOptionPane.showMessageDialog(null, jmse.getMessage(), "Error", 0);
 
 		}
-		JOptionPane.showMessageDialog(null, "Operation has been finenhid with success", "Info", 1);
+		JOptionPane.showMessageDialog(null, "Operation has been finished with success", "Info", 1);
 	}
 
 	public void showTopics() {

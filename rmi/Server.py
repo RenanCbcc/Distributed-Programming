@@ -10,3 +10,4 @@ uri = daemon.register(shop.Shop())
 ns.register("distribuited.shop.Shop", uri)
 print(list(ns.list(prefix="distribuited.shop").keys()))
 daemon.requestLoop()
+
